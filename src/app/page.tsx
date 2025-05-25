@@ -2,7 +2,8 @@
 
 import { MOCK_TOKEN_ADDRESS, MOCK_USDC_ABI } from "@/abi/mock-usdc-abi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { formatUnits } from "viem";
+import { useState } from "react";
+import { formatUnits, parseUnits} from "viem";
 import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 
 export default function Home() {
@@ -39,8 +40,6 @@ export default function Home() {
   const decimals = data?.[2].result;
   const balanceUser = data?.[3].result;
 
-  const { writeContract } = useWriteContract();
-
   const BalanceUser = () => {
     if (!isConnected) {
       return <h1>Please connect your account!</h1>;
@@ -58,21 +57,44 @@ export default function Home() {
   };
 
   const MintComponent = () => {
+    const [userAddress, setUserAddress] = useState<string>("0x");
+    const [amount, setAmount] = useState<string>("0");
+
+    const { writeContract } = useWriteContract();
+
+    const funcionSubmit = () => {
+      writeContract({
+        abi: MOCK_USDC_ABI,
+        address: MOCK_TOKEN_ADDRESS,
+        functionName: "mint",
+        args: [userAddress as `0x${string}`, parseUnits(amount, decimals || 18)], 
+      });
+    };
+
     return (
-      <form className="bg-white text-black">
+      <div className="bg-white text-black">
         <div className="gap-2 justify-between">
           <label>Address user</label>
-          <input className="border-black border-2" />
+          <input
+            className="border-black border-2"
+            onChange={(e) => setUserAddress(e.target.value)}
+          />
         </div>
         <div>
           <label>Amount</label>
-          <input type="number" className="border-black border-2" />
+          <input
+            type="number"
+            className="border-black border-2"
+            onChange={(e) => setAmount(e.target.value)}
+          />
         </div>
-        <input
-          type="submit"
+        <button
           className="bg-blue-400 text-black rounded-lg p-4"
-        />
-      </form>
+          onClick={funcionSubmit}
+        >
+          Mint~
+        </button>
+      </div>
     );
   };
 
